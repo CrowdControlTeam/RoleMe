@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AuthPanel } from "@/components/auth/auth-panel";
 
@@ -13,6 +14,12 @@ export default async function Home() {
         {t("subtitle")}
       </p>
       <AuthPanel />
+      <Link
+        href="/campanas"
+        className="text-sm font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
+      >
+        {t("goToCampanas")}
+      </Link>
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
         {t("comingSoon")}
       </p>

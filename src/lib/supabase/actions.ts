@@ -2,20 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
+import { ensureSession } from "./session";
 
 export async function startAnonymousSession() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      throw error;
-    }
-  }
-
+  await ensureSession(supabase);
   revalidatePath("/");
 }
 
