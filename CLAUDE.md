@@ -21,19 +21,20 @@ This project is fully independent from any other project on this machine — do 
 ## Data model (phase 1)
 
 - **Campaña**: name (required), single `juego` (ruleset — fixed for the whole campaign, no mixing systems across its adventures), `max_jugadores` (≤ a global limit read from config, default 24). Only the creator can invite (via code/link) and create adventures for now (no delegated invite permissions yet).
+- **Juego** (ruleset): stored in the DB (`juegos` + `juego_campos` tables), not a config file — future juegos are inserted rows, and future calculated/derived fields (deferred) can extend `juego_campos` without a file-to-DB migration. Phase 1 ships a single seeded `default` juego, read-only (no editor UI). Personaje fichas' three field groups (estadísticas, información de personaje, estado de personaje) are fixed by the Ficha model itself; `juego_campos` defines which fields exist within each group per juego, plus each field's `type` (`number`/`text`/`textarea`) and default `visible en tarjeta`.
 - **Aventura**: belongs to one Campaña, name (required), description (optional), `max_jugadores` (≤ campaign's limit), has its own master — different adventures in the same campaign can have different masters.
 - **Sesión**: one live "game night" instance of an Aventura; only one `ACTIVA` session per adventure at a time. States: `PREPARACION` → `ACTIVA` → `FINALIZADA` (no `PAUSADA` — deliberately dropped for phase 1 along with pause-consensus/turn-locking mechanics; may return in a later phase). Turn order is a master-editable reference list only, not enforced/blocking. Closes manually (only by whoever created it) or automatically when everyone disconnects (use Supabase Realtime Presence with a grace period to avoid false positives). Reconnection is automatic via user identity + campaign membership — no per-session join codes needed.
 - **Ficha**: belongs to a Campaña (reusable across that campaign's adventures, not tied to a single one), type `personaje` or `master`. Personaje fichas have three field groups — estadísticas, información de personaje, estado de personaje — each field independently flagged `visible en tarjeta` (visibility is orthogonal to the group). Master fichas have no fields of their own yet. JSON export/import only applies to `personaje` fichas. A user can't be master and player at once (phase-1 simplification). Visibility: owner sees full ficha; master sees all fichas in full; everyone else sees only the public "tarjeta" fields.
 - **Dice tool**: decoupled/reusable component — free numeric face-count input + quick presets (d4/d6/d8/d10/d12/d20/d100), quantity (default 1). Public by default inside an active session; only the master can mark a roll private; rolls are logged against the session.
 
-Deferred to later phases (not discarded): importable rules engine / auto-calculated rolls, delegated invite permissions, documents/maps with granular visibility, enforced/blocking turn order, multi-system campaigns.
+Deferred to later phases (not discarded): importable rules engine / auto-calculated rolls, delegated invite permissions, documents/maps with granular visibility, enforced/blocking turn order, multi-system campaigns, character portrait image upload (for personaje fichas).
 
 ## Phase-1 backlog
 
 1. [done] Repo structure + Supabase local project + frontend skeleton
 2. [done] Anonymous auth + optional email linking
 3. [done] Campaña CRUD (create / invite-by-code / join)
-4. [ ] Fixed "default" game schema (stats/fields/state, no editor UI yet)
+4. [done] Fixed "default" game schema (stats/fields/state, no editor UI yet)
 5. [ ] Ficha CRUD (personaje + master) + JSON export/import
 6. [ ] Visibility rules (own ficha / public card / master view)
 7. [ ] Aventura CRUD

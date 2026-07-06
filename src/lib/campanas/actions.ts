@@ -9,7 +9,7 @@ import { generateInviteCode } from "@/lib/invite-code";
 
 export type CreateCampanaState = {
   status: "idle" | "error";
-  errorKey?: "invalidName" | "invalidMaxJugadores" | "generic";
+  errorKey?: "invalidName" | "invalidMaxJugadores" | "invalidJuego" | "generic";
 };
 
 export async function createCampana(
@@ -18,9 +18,14 @@ export async function createCampana(
 ): Promise<CreateCampanaState> {
   const name = formData.get("name");
   const maxJugadoresRaw = formData.get("maxJugadores");
+  const juego = formData.get("juego");
 
   if (typeof name !== "string" || !name.trim()) {
     return { status: "error", errorKey: "invalidName" };
+  }
+
+  if (typeof juego !== "string" || !juego.trim()) {
+    return { status: "error", errorKey: "invalidJuego" };
   }
 
   const maxJugadores = Number(maxJugadoresRaw);
@@ -39,6 +44,7 @@ export async function createCampana(
     .from("campanas")
     .insert({
       name: name.trim(),
+      juego,
       max_jugadores: maxJugadores,
       creator_id: user.id,
       invite_code: generateInviteCode(),
@@ -47,7 +53,10 @@ export async function createCampana(
     .single();
 
   if (error || !data) {
-    return { status: "error", errorKey: "generic" };
+    return {
+      status: "error",
+      errorKey: error?.code === "23503" ? "invalidJuego" : "generic",
+    };
   }
 
   revalidatePath("/campanas");

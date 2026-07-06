@@ -20,6 +20,12 @@ export default async function CampanasPage() {
     campanas = data ?? [];
   }
 
+  const { data: juegosData } = await supabase
+    .from("juegos")
+    .select("id, name")
+    .order("name");
+  const juegos = juegosData ?? [];
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
@@ -55,7 +61,7 @@ export default async function CampanasPage() {
           <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
             {t("createTitle")}
           </h2>
-          <CreateCampanaForm />
+          <CreateCampanaForm juegos={juegos} />
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">

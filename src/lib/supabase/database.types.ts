@@ -88,6 +88,73 @@ export type Database = {
           max_jugadores?: number
           name?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "campanas_juego_fkey"
+            columns: ["juego"]
+            isOneToOne: false
+            referencedRelation: "juegos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      juego_campos: {
+        Row: {
+          default_visible_en_tarjeta: boolean
+          group: string
+          id: string
+          juego_id: string
+          key: string
+          label: string
+          sort_order: number
+          type: string
+        }
+        Insert: {
+          default_visible_en_tarjeta?: boolean
+          group: string
+          id?: string
+          juego_id: string
+          key: string
+          label: string
+          sort_order?: number
+          type: string
+        }
+        Update: {
+          default_visible_en_tarjeta?: boolean
+          group?: string
+          id?: string
+          juego_id?: string
+          key?: string
+          label?: string
+          sort_order?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "juego_campos_juego_id_fkey"
+            columns: ["juego_id"]
+            isOneToOne: false
+            referencedRelation: "juegos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      juegos: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
         Relationships: []
       }
     }
@@ -95,6 +162,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_campana_creator: {
+        Args: { p_campana_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_campana_member: {
+        Args: { p_campana_id: string; p_user_id: string }
+        Returns: boolean
+      }
       join_campana: {
         Args: { p_code: string }
         Returns: {
