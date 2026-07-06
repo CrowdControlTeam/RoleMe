@@ -157,6 +157,77 @@ export type Database = {
         }
         Relationships: []
       }
+      sheet_field_values: {
+        Row: {
+          game_field_id: string
+          sheet_id: string
+          value: string | null
+          visible_on_card: boolean
+        }
+        Insert: {
+          game_field_id: string
+          sheet_id: string
+          value?: string | null
+          visible_on_card?: boolean
+        }
+        Update: {
+          game_field_id?: string
+          sheet_id?: string
+          value?: string | null
+          visible_on_card?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sheet_field_values_game_field_id_fkey"
+            columns: ["game_field_id"]
+            isOneToOne: false
+            referencedRelation: "game_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sheet_field_values_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sheets: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          type: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          type: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sheets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

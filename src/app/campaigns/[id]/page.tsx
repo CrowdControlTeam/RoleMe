@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { regenerateInviteCode } from "@/lib/campaigns/actions";
@@ -51,6 +52,13 @@ export default async function CampaignDetailPage({
           max: campaign.max_players,
         })}
       </p>
+
+      <Link
+        href={`/campaigns/${campaign.id}/sheets`}
+        className="w-fit text-sm font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
+      >
+        {t("goToSheets")}
+      </Link>
 
       {isCreator && (
         <section className="flex flex-col gap-2 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">

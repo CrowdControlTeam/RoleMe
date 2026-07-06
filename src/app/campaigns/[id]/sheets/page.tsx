@@ -1,0 +1,63 @@
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { createClient } from "@/lib/supabase/server";
+import { CreateSheetForm } from "@/components/sheets/create-sheet-form";
+
+export default async function SheetsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: campaignId } = await params;
+  const t = await getTranslations("Sheets");
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("sheets")
+    .select("id, name, type")
+    .eq("campaign_id", campaignId)
+    .order("created_at", { ascending: false });
+  const sheets = data ?? [];
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
+      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+        {t("title")}
+      </h1>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          {t("yourSheetsTitle")}
+        </h2>
+        {sheets.length === 0 ? (
+          <p className="text-sm text-zinc-500">{t("noSheets")}</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {sheets.map((sheet) => (
+              <li key={sheet.id}>
+                <Link
+                  href={`/campaigns/${campaignId}/sheets/${sheet.id}`}
+                  className="flex items-center justify-between rounded-md border border-zinc-200 px-4 py-3 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+                >
+                  <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                    {sheet.name}
+                  </span>
+                  <span className="text-xs text-zinc-500">
+                    {t(sheet.type === "character" ? "typeCharacter" : "typeMaster")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          {t("createTitle")}
+        </h2>
+        <CreateSheetForm campaignId={campaignId} />
+      </section>
+    </div>
+  );
+}
