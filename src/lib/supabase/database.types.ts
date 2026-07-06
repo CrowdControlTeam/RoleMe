@@ -40,27 +40,24 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          master_user_id: string
-          max_players: number
           name: string
+          required_players: number
         }
         Insert: {
           campaign_id: string
           created_at?: string
           description?: string | null
           id?: string
-          master_user_id: string
-          max_players: number
           name: string
+          required_players: number
         }
         Update: {
           campaign_id?: string
           created_at?: string
           description?: string | null
           id?: string
-          master_user_id?: string
-          max_players?: number
           name?: string
+          required_players?: number
         }
         Relationships: [
           {
@@ -194,6 +191,93 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      session_participants: {
+        Row: {
+          joined_at: string
+          ready: boolean
+          session_id: string
+          sheet_id: string | null
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          ready?: boolean
+          session_id: string
+          sheet_id?: string | null
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          ready?: boolean
+          session_id?: string
+          sheet_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_participants_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          adventure_id: string
+          campaign_id: string
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          adventure_id: string
+          campaign_id: string
+          created_at?: string
+          created_by: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          adventure_id?: string
+          campaign_id?: string
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_adventure_id_fkey"
+            columns: ["adventure_id"]
+            isOneToOne: false
+            referencedRelation: "adventures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sheet_field_values: {
         Row: {

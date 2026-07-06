@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/database.types";
 
 export type CreateSheetState = {
   status: "idle" | "error";
@@ -53,36 +55,91 @@ export async function createSheet(
   redirect(`/campaigns/${campaignId}/sheets/${data.id}`);
 }
 
+// A sheet is "in play": some lobby/session has it readied up and hasn't
+// finished yet. Stats and character info are frozen while that's true —
+// only the character_state group stays editable during a game.
+export async function isSheetLocked(
+  supabase: SupabaseClient<Database>,
+  sheetId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("session_participants")
+    .select("ready, sessions(status)")
+    .eq("sheet_id", sheetId)
+    .eq("ready", true);
+
+  return (data ?? []).some(
+    (p) => p.sessions?.status === "preparing" || p.sessions?.status === "active",
+  );
+}
+
 export type UpdateSheetFieldsState = {
   status: "idle" | "success" | "error";
+  errorKey?: "locked" | "generic";
 };
 
-export async function updateSheetFields(
-  sheetId: string,
-  campaignId: string,
-  _prevState: UpdateSheetFieldsState,
-  formData: FormData,
-): Promise<UpdateSheetFieldsState> {
+function fieldRowsFromFormData(sheetId: string, formData: FormData) {
   const gameFieldIds = formData.getAll("gameFieldId").map(String);
-
-  const rows = gameFieldIds.map((gameFieldId) => ({
+  return gameFieldIds.map((gameFieldId) => ({
     sheet_id: sheetId,
     game_field_id: gameFieldId,
     value: (formData.get(`value_${gameFieldId}`) as string | null) ?? null,
     visible_on_card: formData.get(`visible_${gameFieldId}`) === "on",
   }));
+}
 
+// Stats + character info: locked once the sheet is readied up in a
+// non-finished session (see isSheetLocked).
+export async function updateSheetStatsInfo(
+  sheetId: string,
+  campaignId: string,
+  _prevState: UpdateSheetFieldsState,
+  formData: FormData,
+): Promise<UpdateSheetFieldsState> {
+  const supabase = await createClient();
+
+  if (await isSheetLocked(supabase, sheetId)) {
+    return { status: "error", errorKey: "locked" };
+  }
+
+  const rows = fieldRowsFromFormData(sheetId, formData);
   if (rows.length === 0) {
     return { status: "success" };
   }
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("sheet_field_values")
     .upsert(rows, { onConflict: "sheet_id,game_field_id" });
 
   if (error) {
-    return { status: "error" };
+    return { status: "error", errorKey: "generic" };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/sheets/${sheetId}`);
+  return { status: "success" };
+}
+
+// Character state (HP, conditions...): always editable by the owner, even
+// mid-session — this is the group meant to change during play.
+export async function updateSheetState(
+  sheetId: string,
+  campaignId: string,
+  _prevState: UpdateSheetFieldsState,
+  formData: FormData,
+): Promise<UpdateSheetFieldsState> {
+  const supabase = await createClient();
+
+  const rows = fieldRowsFromFormData(sheetId, formData);
+  if (rows.length === 0) {
+    return { status: "success" };
+  }
+
+  const { error } = await supabase
+    .from("sheet_field_values")
+    .upsert(rows, { onConflict: "sheet_id,game_field_id" });
+
+  if (error) {
+    return { status: "error", errorKey: "generic" };
   }
 
   revalidatePath(`/campaigns/${campaignId}/sheets/${sheetId}`);
@@ -103,7 +160,7 @@ export async function deleteSheet(campaignId: string, sheetId: string) {
 
 export type ImportSheetState = {
   status: "idle" | "success" | "error";
-  errorKey?: "invalidJson" | "notCharacterSheet" | "generic";
+  errorKey?: "invalidJson" | "notCharacterSheet" | "locked" | "generic";
 };
 
 export async function importSheetJson(
@@ -145,6 +202,11 @@ export async function importSheetJson(
 
   if (!sheet || sheet.type !== "character") {
     return { status: "error", errorKey: "notCharacterSheet" };
+  }
+
+  // Import can touch stats/info, so it's subject to the same lock.
+  if (await isSheetLocked(supabase, sheetId)) {
+    return { status: "error", errorKey: "locked" };
   }
 
   const gameId = sheet.campaigns?.game;

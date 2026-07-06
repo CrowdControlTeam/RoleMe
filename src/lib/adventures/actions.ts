@@ -6,27 +6,22 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AdventureFormState = {
   status: "idle" | "success" | "error";
-  errorKey?: "invalidName" | "invalidMaxPlayers" | "invalidMaster" | "generic";
+  errorKey?: "invalidName" | "invalidRequiredPlayers" | "generic";
 };
 
 async function validateAdventureInput(
   campaignId: string,
   formData: FormData,
 ): Promise<
-  | { ok: true; name: string; description: string | null; maxPlayers: number; masterUserId: string }
+  | { ok: true; name: string; description: string | null; requiredPlayers: number }
   | { ok: false; errorKey: NonNullable<AdventureFormState["errorKey"]> }
 > {
   const name = formData.get("name");
   const description = formData.get("description");
-  const maxPlayersRaw = formData.get("maxPlayers");
-  const masterUserId = formData.get("masterUserId");
+  const requiredPlayersRaw = formData.get("requiredPlayers");
 
   if (typeof name !== "string" || !name.trim()) {
     return { ok: false, errorKey: "invalidName" };
-  }
-
-  if (typeof masterUserId !== "string" || !masterUserId.trim()) {
-    return { ok: false, errorKey: "invalidMaster" };
   }
 
   const supabase = await createClient();
@@ -37,34 +32,21 @@ async function validateAdventureInput(
     .eq("id", campaignId)
     .maybeSingle();
 
-  const maxPlayers = Number(maxPlayersRaw);
+  const requiredPlayers = Number(requiredPlayersRaw);
   if (
     !campaign ||
-    !Number.isInteger(maxPlayers) ||
-    maxPlayers < 1 ||
-    maxPlayers > campaign.max_players
+    !Number.isInteger(requiredPlayers) ||
+    requiredPlayers < 1 ||
+    requiredPlayers > campaign.max_players
   ) {
-    return { ok: false, errorKey: "invalidMaxPlayers" };
-  }
-
-  const { data: masterSheet } = await supabase
-    .from("sheets")
-    .select("id")
-    .eq("campaign_id", campaignId)
-    .eq("owner_id", masterUserId)
-    .eq("type", "master")
-    .maybeSingle();
-
-  if (!masterSheet) {
-    return { ok: false, errorKey: "invalidMaster" };
+    return { ok: false, errorKey: "invalidRequiredPlayers" };
   }
 
   return {
     ok: true,
     name: name.trim(),
     description: typeof description === "string" && description.trim() ? description.trim() : null,
-    maxPlayers,
-    masterUserId,
+    requiredPlayers,
   };
 }
 
@@ -85,8 +67,7 @@ export async function createAdventure(
       campaign_id: campaignId,
       name: result.name,
       description: result.description,
-      max_players: result.maxPlayers,
-      master_user_id: result.masterUserId,
+      required_players: result.requiredPlayers,
     })
     .select("id")
     .single();
@@ -116,8 +97,7 @@ export async function updateAdventure(
     .update({
       name: result.name,
       description: result.description,
-      max_players: result.maxPlayers,
-      master_user_id: result.masterUserId,
+      required_players: result.requiredPlayers,
     })
     .eq("id", adventureId);
 

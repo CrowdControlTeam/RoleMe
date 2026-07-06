@@ -1,19 +1,21 @@
--- Adventures (Aventura): belong to one campaign, have their own master —
--- different adventures in the same campaign can have different masters.
--- Only the campaign creator can create/edit/delete adventures for now (no
--- delegated invite/management permissions yet, same rule as campaign
--- invites). max_players <= the campaign's max_players is enforced in the
--- server action (cross-table checks aren't expressible as a CHECK
--- constraint), same pattern as the campaign's max_players-vs-global-limit
--- validation.
+-- Adventures (Aventura): belong to one campaign. Only the campaign creator
+-- can create/edit/delete adventures for now (no delegated invite/management
+-- permissions yet, same rule as campaign invites). required_players <= the
+-- campaign's max_players is enforced in the server action (cross-table
+-- checks aren't expressible as a CHECK constraint), same pattern as the
+-- campaign's max_players-vs-global-limit validation.
+--
+-- There's no master_user_id here: the master isn't fixed at adventure
+-- creation. It's resolved dynamically each time a session starts, by
+-- whichever lobby participant readies up with a master-type sheet (see the
+-- sessions migration).
 
 create table adventures (
   id uuid primary key default gen_random_uuid(),
   campaign_id uuid not null references campaigns (id) on delete cascade,
   name text not null check (char_length(trim(name)) > 0),
   description text,
-  max_players int not null check (max_players > 0),
-  master_user_id uuid not null references auth.users (id) on delete restrict,
+  required_players int not null check (required_players > 0),
   created_at timestamptz not null default now()
 );
 

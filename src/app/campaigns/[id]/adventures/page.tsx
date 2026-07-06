@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdventure } from "@/lib/adventures/actions";
-import { getMasterCandidates } from "@/lib/adventures/master-candidates";
 import { AdventureForm } from "@/components/adventures/adventure-form";
 
 export default async function AdventuresPage({
@@ -32,10 +31,6 @@ export default async function AdventuresPage({
     .eq("campaign_id", campaignId)
     .order("created_at", { ascending: false });
   const adventures = adventuresData ?? [];
-
-  const masters = isCreator
-    ? await getMasterCandidates(supabase, campaignId)
-    : [];
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
@@ -74,7 +69,6 @@ export default async function AdventuresPage({
           </h2>
           <AdventureForm
             action={createAdventure.bind(null, campaignId)}
-            masters={masters}
             maxPlayersLimit={campaign.max_players}
             submitLabel={t("createButton")}
             pendingLabel={t("creating")}

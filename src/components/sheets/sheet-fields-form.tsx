@@ -2,10 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  updateSheetFields,
-  type UpdateSheetFieldsState,
-} from "@/lib/sheets/actions";
+import type { UpdateSheetFieldsState } from "@/lib/sheets/actions";
 
 export type SheetFieldGroup = {
   group: string;
@@ -22,19 +19,17 @@ export type SheetFieldGroup = {
 const initialState: UpdateSheetFieldsState = { status: "idle" };
 
 export function SheetFieldsForm({
-  sheetId,
-  campaignId,
+  action,
   groups,
 }: {
-  sheetId: string;
-  campaignId: string;
+  action: (
+    prevState: UpdateSheetFieldsState,
+    formData: FormData,
+  ) => Promise<UpdateSheetFieldsState>;
   groups: SheetFieldGroup[];
 }) {
   const t = useTranslations("Sheets");
-  const [state, formAction, pending] = useActionState(
-    updateSheetFields.bind(null, sheetId, campaignId),
-    initialState,
-  );
+  const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
@@ -90,7 +85,7 @@ export function SheetFieldsForm({
       )}
       {state.status === "error" && (
         <p className="text-sm text-red-600 dark:text-red-400">
-          {t("generic")}
+          {t(state.errorKey === "locked" ? "locked" : "generic")}
         </p>
       )}
     </form>

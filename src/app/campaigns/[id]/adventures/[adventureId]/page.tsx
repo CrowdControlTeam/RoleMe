@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateAdventure, deleteAdventure } from "@/lib/adventures/actions";
-import { getMasterCandidates } from "@/lib/adventures/master-candidates";
+import { startSession } from "@/lib/sessions/actions";
 import { AdventureForm } from "@/components/adventures/adventure-form";
 
 export default async function AdventureDetailPage({
@@ -20,7 +21,7 @@ export default async function AdventureDetailPage({
 
   const { data: adventure } = await supabase
     .from("adventures")
-    .select("id, name, description, max_players, master_user_id, campaigns(creator_id, max_players)")
+    .select("id, name, description, required_players, campaigns(creator_id, max_players)")
     .eq("id", adventureId)
     .maybeSingle();
 
@@ -30,15 +31,12 @@ export default async function AdventureDetailPage({
 
   const isCreator = user?.id === adventure.campaigns?.creator_id;
 
-  const { data: membersData } = await supabase.rpc("get_campaign_members", {
-    p_campaign_id: campaignId,
-  });
-  const nameByUserId = new Map(
-    (membersData ?? []).map((m) => [m.user_id, m.display_name]),
-  );
-  const masterName = nameByUserId.get(adventure.master_user_id) ?? adventure.master_user_id;
-
-  const masters = isCreator ? await getMasterCandidates(supabase, campaignId) : [];
+  const { data: openSession } = await supabase
+    .from("sessions")
+    .select("id, status")
+    .eq("adventure_id", adventureId)
+    .in("status", ["preparing", "active"])
+    .maybeSingle();
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
@@ -51,11 +49,26 @@ export default async function AdventureDetailPage({
         </p>
       )}
       <p className="text-sm text-zinc-500">
-        {t("masterDisplay", { name: masterName })}
+        {t("requiredPlayersDisplay", { count: adventure.required_players })}
       </p>
-      <p className="text-sm text-zinc-500">
-        {t("maxPlayersDisplay", { max: adventure.max_players })}
-      </p>
+
+      {openSession ? (
+        <Link
+          href={`/campaigns/${campaignId}/adventures/${adventureId}/sessions/${openSession.id}`}
+          className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+        >
+          {openSession.status === "preparing" ? t("goToLobby") : t("goToSession")}
+        </Link>
+      ) : (
+        <form action={startSession.bind(null, adventureId, campaignId)}>
+          <button
+            type="submit"
+            className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+          >
+            {t("startSession")}
+          </button>
+        </form>
+      )}
 
       {isCreator && adventure.campaigns && (
         <section className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
@@ -64,13 +77,11 @@ export default async function AdventureDetailPage({
           </h2>
           <AdventureForm
             action={updateAdventure.bind(null, adventure.id, campaignId)}
-            masters={masters}
             maxPlayersLimit={adventure.campaigns.max_players}
             defaultValues={{
               name: adventure.name,
               description: adventure.description,
-              maxPlayers: adventure.max_players,
-              masterUserId: adventure.master_user_id,
+              requiredPlayers: adventure.required_players,
             }}
             submitLabel={t("saveButton")}
             pendingLabel={t("saving")}

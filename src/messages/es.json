@@ -54,10 +54,7 @@
     "editTitle": "Editar aventura",
     "nameLabel": "Nombre",
     "descriptionLabel": "Descripción",
-    "maxPlayersLabel": "Máximo de jugadores",
-    "masterLabel": "Master",
-    "selectMaster": "Selecciona un master",
-    "noMasterCandidates": "Todavía no hay ninguna ficha de master en esta campaña. Crea una para poder asignarla como master de la aventura.",
+    "requiredPlayersLabel": "Jugadores necesarios",
     "createButton": "Crear aventura",
     "creating": "Creando...",
     "saveButton": "Guardar",
@@ -65,11 +62,12 @@
     "saveSuccess": "Aventura guardada.",
     "deleteButton": "Eliminar aventura",
     "invalidName": "Introduce un nombre para la aventura.",
-    "invalidMaxPlayers": "El máximo de jugadores no es válido.",
-    "invalidMaster": "Selecciona un master válido (debe tener una ficha de master en esta campaña).",
+    "invalidRequiredPlayers": "El número de jugadores necesarios no es válido.",
     "generic": "Ha ocurrido un error. Inténtalo de nuevo.",
-    "masterDisplay": "Master: {name}",
-    "maxPlayersDisplay": "Máximo {max} jugadores"
+    "requiredPlayersDisplay": "Requiere {count} jugadores",
+    "startSession": "Iniciar sesión",
+    "goToLobby": "Ir al lobby",
+    "goToSession": "Ir a la sesión"
   },
   "Sheets": {
     "title": "Fichas",
@@ -101,6 +99,31 @@
     "importSuccess": "Ficha importada correctamente.",
     "invalidJson": "El JSON no es válido.",
     "notCharacterSheet": "Solo las fichas de personaje admiten importación.",
-    "deleteButton": "Eliminar ficha"
+    "deleteButton": "Eliminar ficha",
+    "locked": "Estadísticas e información de personaje están bloqueadas mientras esta ficha participa en una sesión."
+  },
+  "Sessions": {
+    "statusPreparing": "En preparación (lobby)",
+    "statusActive": "Partida en marcha",
+    "sessionFinished": "Esta sesión ha finalizado.",
+    "participantsCount": "{count} de {required} jugadores",
+    "masterMismatch": "Debe haber exactamente un master listo (actualmente: {count}).",
+    "youBadge": "(tú)",
+    "noSheetYet": "Sin ficha",
+    "readyBadge": "Listo",
+    "notReadyBadge": "No listo",
+    "joinButton": "Unirme al lobby",
+    "selectSheetPlaceholder": "Selecciona una ficha",
+    "selectSheetButton": "Seleccionar",
+    "selectingSheet": "Seleccionando...",
+    "invalidSheet": "Selecciona una ficha válida.",
+    "generic": "Ha ocurrido un error. Inténtalo de nuevo.",
+    "createNewSheetLink": "¿Necesitas una ficha nueva? Créala aquí",
+    "readyButton": "Listo",
+    "cancelReadyButton": "Cancelar listo",
+    "leaveButton": "Abandonar lobby",
+    "finishSessionButton": "Cerrar sesión",
+    "typeMaster": "master",
+    "typeCharacter": "personaje"
   }
 }

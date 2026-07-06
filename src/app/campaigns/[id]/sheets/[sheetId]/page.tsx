@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { deleteSheet } from "@/lib/sheets/actions";
+import {
+  deleteSheet,
+  isSheetLocked,
+  updateSheetStatsInfo,
+  updateSheetState,
+} from "@/lib/sheets/actions";
 import {
   SheetFieldsForm,
   type SheetFieldGroup,
@@ -9,8 +14,8 @@ import {
 import { ReadOnlySheetFields } from "@/components/sheets/read-only-sheet-fields";
 import { ImportSheetForm } from "@/components/sheets/import-sheet-form";
 
-const GROUP_ORDER = ["stats", "character_info", "character_state"] as const;
-const GROUP_TITLE_KEY: Record<(typeof GROUP_ORDER)[number], string> = {
+const STATS_INFO_GROUPS = ["stats", "character_info"] as const;
+const GROUP_TITLE_KEY: Record<string, string> = {
   stats: "statsTitle",
   character_info: "characterInfoTitle",
   character_state: "characterStateTitle",
@@ -41,7 +46,9 @@ export default async function SheetDetailPage({
 
   const isOwner = user?.id === sheet.owner_id;
 
-  let groups: SheetFieldGroup[] = [];
+  let statsInfoGroups: SheetFieldGroup[] = [];
+  let stateGroups: SheetFieldGroup[] = [];
+  let locked = false;
 
   if (sheet.type === "character") {
     const gameId = sheet.campaigns?.game ?? "";
@@ -61,7 +68,7 @@ export default async function SheetDetailPage({
       (values ?? []).map((v) => [v.game_field_id, v]),
     );
 
-    groups = GROUP_ORDER.map((group) => ({
+    const buildGroup = (group: string): SheetFieldGroup => ({
       group,
       titleKey: GROUP_TITLE_KEY[group],
       fields: (gameFields ?? [])
@@ -80,7 +87,14 @@ export default async function SheetDetailPage({
             visibleOnCard: v?.visible_on_card ?? true,
           };
         }),
-    }));
+    });
+
+    statsInfoGroups = STATS_INFO_GROUPS.map(buildGroup);
+    stateGroups = [buildGroup("character_state")];
+
+    if (isOwner) {
+      locked = await isSheetLocked(supabase, sheetId);
+    }
   }
 
   return (
@@ -98,10 +112,23 @@ export default async function SheetDetailPage({
         <p className="text-sm text-zinc-500">{t("masterSheetPlaceholder")}</p>
       ) : isOwner ? (
         <>
+          {locked && (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              {t("locked")}
+            </p>
+          )}
+          {locked ? (
+            <ReadOnlySheetFields groups={statsInfoGroups} />
+          ) : (
+            <SheetFieldsForm
+              action={updateSheetStatsInfo.bind(null, sheet.id, campaignId)}
+              groups={statsInfoGroups}
+            />
+          )}
+
           <SheetFieldsForm
-            sheetId={sheet.id}
-            campaignId={campaignId}
-            groups={groups}
+            action={updateSheetState.bind(null, sheet.id, campaignId)}
+            groups={stateGroups}
           />
 
           <section className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
@@ -118,7 +145,7 @@ export default async function SheetDetailPage({
           </section>
         </>
       ) : (
-        <ReadOnlySheetFields groups={groups} />
+        <ReadOnlySheetFields groups={[...statsInfoGroups, ...stateGroups]} />
       )}
 
       {isOwner && (
