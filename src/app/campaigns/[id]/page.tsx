@@ -53,12 +53,20 @@ export default async function CampaignDetailPage({
         })}
       </p>
 
-      <Link
-        href={`/campaigns/${campaign.id}/sheets`}
-        className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
-      >
-        {t("goToMySheets")}
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link
+          href={`/campaigns/${campaign.id}/sheets`}
+          className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+        >
+          {t("goToMySheets")}
+        </Link>
+        <Link
+          href={`/campaigns/${campaign.id}/adventures`}
+          className="w-fit rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+        >
+          {t("goToAdventures")}
+        </Link>
+      </div>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">

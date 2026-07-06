@@ -34,6 +34,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      adventures: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          description: string | null
+          id: string
+          master_user_id: string
+          max_players: number
+          name: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          master_user_id: string
+          max_players: number
+          name: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          master_user_id?: string
+          max_players?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adventures_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_members: {
         Row: {
           campaign_id: string
