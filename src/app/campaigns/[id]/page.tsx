@@ -28,10 +28,10 @@ export default async function CampaignDetailPage({
     notFound();
   }
 
-  const { count: memberCount } = await supabase
-    .from("campaign_members")
-    .select("*", { count: "exact", head: true })
-    .eq("campaign_id", id);
+  const { data: membersData } = await supabase.rpc("get_campaign_members", {
+    p_campaign_id: id,
+  });
+  const members = membersData ?? [];
 
   const isCreator = user?.id === campaign.creator_id;
   const requestHeaders = await headers();
@@ -48,17 +48,38 @@ export default async function CampaignDetailPage({
       </h1>
       <p className="text-sm text-zinc-500">
         {t("membersCount", {
-          count: memberCount ?? 0,
+          count: members.length,
           max: campaign.max_players,
         })}
       </p>
 
       <Link
         href={`/campaigns/${campaign.id}/sheets`}
-        className="w-fit text-sm font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
+        className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
       >
-        {t("goToSheets")}
+        {t("goToMySheets")}
       </Link>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          {t("membersTitle")}
+        </h2>
+        <ul className="flex flex-col gap-1">
+          {members.map((member) => (
+            <li
+              key={member.user_id}
+              className="rounded-md border border-zinc-200 px-4 py-2 text-sm text-zinc-900 dark:border-zinc-800 dark:text-zinc-50"
+            >
+              {member.display_name}
+              {member.user_id === user?.id && (
+                <span className="ml-2 text-xs font-normal text-zinc-500">
+                  {t("youBadge")}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {isCreator && (
         <section className="flex flex-col gap-2 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">

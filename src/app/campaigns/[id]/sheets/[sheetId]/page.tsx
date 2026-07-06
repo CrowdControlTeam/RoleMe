@@ -6,6 +6,7 @@ import {
   SheetFieldsForm,
   type SheetFieldGroup,
 } from "@/components/sheets/sheet-fields-form";
+import { ReadOnlySheetFields } from "@/components/sheets/read-only-sheet-fields";
 import { ImportSheetForm } from "@/components/sheets/import-sheet-form";
 
 const GROUP_ORDER = ["stats", "character_info", "character_state"] as const;
@@ -24,15 +25,21 @@ export default async function SheetDetailPage({
   const t = await getTranslations("Sheets");
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: sheet } = await supabase
     .from("sheets")
-    .select("id, name, type, campaigns(game)")
+    .select("id, name, type, owner_id, campaigns(game)")
     .eq("id", sheetId)
     .maybeSingle();
 
   if (!sheet) {
     notFound();
   }
+
+  const isOwner = user?.id === sheet.owner_id;
 
   let groups: SheetFieldGroup[] = [];
 
@@ -59,6 +66,10 @@ export default async function SheetDetailPage({
       titleKey: GROUP_TITLE_KEY[group],
       fields: (gameFields ?? [])
         .filter((f) => f.group === group)
+        // Non-owners only ever get rows RLS lets them see (all fields for a
+        // master, only visible_on_card ones for everyone else) — so a field
+        // with no matching row here just isn't rendered for them.
+        .filter((f) => isOwner || valueByFieldId.has(f.id))
         .map((f) => {
           const v = valueByFieldId.get(f.id);
           return {
@@ -85,7 +96,7 @@ export default async function SheetDetailPage({
 
       {sheet.type === "master" ? (
         <p className="text-sm text-zinc-500">{t("masterSheetPlaceholder")}</p>
-      ) : (
+      ) : isOwner ? (
         <>
           <SheetFieldsForm
             sheetId={sheet.id}
@@ -106,16 +117,20 @@ export default async function SheetDetailPage({
             <ImportSheetForm sheetId={sheet.id} campaignId={campaignId} />
           </section>
         </>
+      ) : (
+        <ReadOnlySheetFields groups={groups} />
       )}
 
-      <form action={deleteSheet.bind(null, campaignId, sheet.id)}>
-        <button
-          type="submit"
-          className="w-fit rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 dark:border-red-800 dark:text-red-400"
-        >
-          {t("deleteButton")}
-        </button>
-      </form>
+      {isOwner && (
+        <form action={deleteSheet.bind(null, campaignId, sheet.id)}>
+          <button
+            type="submit"
+            className="w-fit rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 dark:border-red-800 dark:text-red-400"
+          >
+            {t("deleteButton")}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

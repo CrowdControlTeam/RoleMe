@@ -12,11 +12,18 @@ export default async function SheetsPage({
   const t = await getTranslations("Sheets");
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("sheets")
-    .select("id, name, type")
-    .eq("campaign_id", campaignId)
-    .order("created_at", { ascending: false });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data } = user
+    ? await supabase
+        .from("sheets")
+        .select("id, name, type")
+        .eq("campaign_id", campaignId)
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false })
+    : { data: null };
   const sheets = data ?? [];
 
   return (

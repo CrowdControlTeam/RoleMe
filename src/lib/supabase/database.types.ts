@@ -233,7 +233,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_campaign_members: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          display_name: string
+          joined_at: string
+          user_id: string
+        }[]
+      }
       is_campaign_creator: {
+        Args: { p_campaign_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_campaign_master: {
         Args: { p_campaign_id: string; p_user_id: string }
         Returns: boolean
       }

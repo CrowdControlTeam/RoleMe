@@ -41,11 +41,13 @@
     "inviteTitle": "Invitar jugadores",
     "inviteDescription": "Comparte este código o enlace para que otros se unan a la campaña.",
     "regenerateButton": "Regenerar código",
-    "goToSheets": "Ver fichas"
+    "goToMySheets": "Mis fichas",
+    "membersTitle": "Miembros de la campaña",
+    "youBadge": "(tú)"
   },
   "Sheets": {
     "title": "Fichas",
-    "yourSheetsTitle": "Fichas de la campaña",
+    "yourSheetsTitle": "Tus fichas",
     "noSheets": "Todavía no has creado ninguna ficha en esta campaña.",
     "createTitle": "Crear una ficha",
     "nameLabel": "Nombre",
