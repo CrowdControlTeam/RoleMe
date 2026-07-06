@@ -3,5 +3,17 @@
     "title": "RoleMe",
     "subtitle": "Organiza tus partidas de rol en vivo",
     "comingSoon": "Estamos construyendo la aplicación. Vuelve pronto."
+  },
+  "Auth": {
+    "startButton": "Empezar",
+    "anonymousBadge": "Sesión anónima",
+    "linkEmailDescription": "Vincula un email para no perder tu progreso entre dispositivos.",
+    "emailPlaceholder": "tu@email.com",
+    "linkButton": "Vincular email",
+    "linkPending": "Enviando...",
+    "linkSuccess": "Revisa tu bandeja de entrada para confirmar el email.",
+    "linkError": "No se pudo vincular el email. Inténtalo de nuevo.",
+    "invalidEmail": "Introduce un email válido.",
+    "linkedEmailLabel": "Sesión vinculada a {email}"
   }
 }

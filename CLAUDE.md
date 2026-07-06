@@ -31,7 +31,7 @@ Deferred to later phases (not discarded): importable rules engine / auto-calcula
 ## Phase-1 backlog
 
 1. [done] Repo structure + Supabase local project + frontend skeleton
-2. [ ] Anonymous auth + optional email linking
+2. [done] Anonymous auth + optional email linking
 3. [ ] Campaña CRUD (create / invite-by-code / join)
 4. [ ] Fixed "default" game schema (stats/fields/state, no editor UI yet)
 5. [ ] Ficha CRUD (personaje + master) + JSON export/import
@@ -39,6 +39,7 @@ Deferred to later phases (not discarded): importable rules engine / auto-calcula
 7. [ ] Aventura CRUD
 8. [ ] Sesión (preparation → active → close)
 9. [ ] Dice tool + session integration
+10. [ ] Set up real/hosted Supabase environment (supabase.com project) and fill in `.env.local` — deferred until the rest of phase 1 is validated against local Supabase (Docker)
 
 ## Known environment notes
 
