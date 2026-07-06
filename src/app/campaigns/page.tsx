@@ -1,30 +1,30 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { CreateCampanaForm } from "@/components/campanas/create-campana-form";
-import { JoinCampanaForm } from "@/components/campanas/join-campana-form";
+import { CreateCampaignForm } from "@/components/campaigns/create-campaign-form";
+import { JoinCampaignForm } from "@/components/campaigns/join-campaign-form";
 
-export default async function CampanasPage() {
-  const t = await getTranslations("Campanas");
+export default async function CampaignsPage() {
+  const t = await getTranslations("Campaigns");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let campanas: { id: string; name: string }[] = [];
+  let campaigns: { id: string; name: string }[] = [];
   if (user) {
     const { data } = await supabase
-      .from("campanas")
+      .from("campaigns")
       .select("id, name")
       .order("created_at", { ascending: false });
-    campanas = data ?? [];
+    campaigns = data ?? [];
   }
 
-  const { data: juegosData } = await supabase
-    .from("juegos")
+  const { data: gamesData } = await supabase
+    .from("games")
     .select("id, name")
     .order("name");
-  const juegos = juegosData ?? [];
+  const games = gamesData ?? [];
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
@@ -34,20 +34,20 @@ export default async function CampanasPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
-          {t("yourCampanasTitle")}
+          {t("yourCampaignsTitle")}
         </h2>
-        {campanas.length === 0 ? (
-          <p className="text-sm text-zinc-500">{t("noCampanas")}</p>
+        {campaigns.length === 0 ? (
+          <p className="text-sm text-zinc-500">{t("noCampaigns")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {campanas.map((campana) => (
-              <li key={campana.id}>
+            {campaigns.map((campaign) => (
+              <li key={campaign.id}>
                 <Link
-                  href={`/campanas/${campana.id}`}
+                  href={`/campaigns/${campaign.id}`}
                   className="block rounded-md border border-zinc-200 px-4 py-3 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
                 >
                   <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                    {campana.name}
+                    {campaign.name}
                   </span>
                 </Link>
               </li>
@@ -61,13 +61,13 @@ export default async function CampanasPage() {
           <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
             {t("createTitle")}
           </h2>
-          <CreateCampanaForm juegos={juegos} />
+          <CreateCampaignForm games={games} />
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
             {t("joinTitle")}
           </h2>
-          <JoinCampanaForm />
+          <JoinCampaignForm />
         </div>
       </section>
     </div>

@@ -2,7 +2,7 @@
   "HomePage": {
     "title": "RoleMe",
     "subtitle": "Organiza tus partidas de rol en vivo",
-    "goToCampanas": "Ver mis campañas",
+    "goToCampaigns": "Ver mis campañas",
     "comingSoon": "Estamos construyendo la aplicación. Vuelve pronto."
   },
   "Auth": {
@@ -17,19 +17,19 @@
     "invalidEmail": "Introduce un email válido.",
     "linkedEmailLabel": "Sesión vinculada a {email}"
   },
-  "Campanas": {
+  "Campaigns": {
     "title": "Campañas",
-    "yourCampanasTitle": "Tus campañas",
-    "noCampanas": "Todavía no perteneces a ninguna campaña.",
+    "yourCampaignsTitle": "Tus campañas",
+    "noCampaigns": "Todavía no perteneces a ninguna campaña.",
     "createTitle": "Crear una campaña",
     "nameLabel": "Nombre",
-    "juegoLabel": "Juego",
-    "maxJugadoresLabel": "Máximo de jugadores",
+    "gameLabel": "Juego",
+    "maxPlayersLabel": "Máximo de jugadores",
     "createButton": "Crear campaña",
     "creating": "Creando...",
     "invalidName": "Introduce un nombre para la campaña.",
-    "invalidJuego": "Selecciona un juego válido.",
-    "invalidMaxJugadores": "El máximo de jugadores no es válido.",
+    "invalidGame": "Selecciona un juego válido.",
+    "invalidMaxPlayers": "El máximo de jugadores no es válido.",
     "generic": "Ha ocurrido un error. Inténtalo de nuevo.",
     "joinTitle": "Unirse con un código",
     "codeLabel": "Código de invitación",

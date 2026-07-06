@@ -15,10 +15,10 @@ export default async function Home() {
       </p>
       <AuthPanel />
       <Link
-        href="/campanas"
+        href="/campaigns"
         className="text-sm font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
       >
-        {t("goToCampanas")}
+        {t("goToCampaigns")}
       </Link>
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
         {t("comingSoon")}

@@ -2,14 +2,17 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { joinCampana, type JoinCampanaState } from "@/lib/campanas/actions";
+import {
+  joinCampaign,
+  type JoinCampaignState,
+} from "@/lib/campaigns/actions";
 
-const initialState: JoinCampanaState = { status: "idle" };
+const initialState: JoinCampaignState = { status: "idle" };
 
-export function JoinCampanaForm({ defaultCode }: { defaultCode?: string }) {
-  const t = useTranslations("Campanas");
+export function JoinCampaignForm({ defaultCode }: { defaultCode?: string }) {
+  const t = useTranslations("Campaigns");
   const [state, formAction, pending] = useActionState(
-    joinCampana,
+    joinCampaign,
     initialState,
   );
 

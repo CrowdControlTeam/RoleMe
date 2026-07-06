@@ -2,19 +2,22 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { createCampana, type CreateCampanaState } from "@/lib/campanas/actions";
-import { CAMPANA_MAX_JUGADORES_LIMIT } from "@/lib/config";
+import {
+  createCampaign,
+  type CreateCampaignState,
+} from "@/lib/campaigns/actions";
+import { CAMPAIGN_MAX_PLAYERS_LIMIT } from "@/lib/config";
 
-const initialState: CreateCampanaState = { status: "idle" };
+const initialState: CreateCampaignState = { status: "idle" };
 
-export function CreateCampanaForm({
-  juegos,
+export function CreateCampaignForm({
+  games,
 }: {
-  juegos: { id: string; name: string }[];
+  games: { id: string; name: string }[];
 }) {
-  const t = useTranslations("Campanas");
+  const t = useTranslations("Campaigns");
   const [state, formAction, pending] = useActionState(
-    createCampana,
+    createCampaign,
     initialState,
   );
 
@@ -30,27 +33,27 @@ export function CreateCampanaForm({
         />
       </label>
       <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-        {t("juegoLabel")}
+        {t("gameLabel")}
         <select
-          name="juego"
+          name="game"
           required
           className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
         >
-          {juegos.map((juego) => (
-            <option key={juego.id} value={juego.id}>
-              {juego.name}
+          {games.map((game) => (
+            <option key={game.id} value={game.id}>
+              {game.name}
             </option>
           ))}
         </select>
       </label>
       <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-        {t("maxJugadoresLabel")}
+        {t("maxPlayersLabel")}
         <input
           type="number"
-          name="maxJugadores"
+          name="maxPlayers"
           min={1}
-          max={CAMPANA_MAX_JUGADORES_LIMIT}
-          defaultValue={CAMPANA_MAX_JUGADORES_LIMIT}
+          max={CAMPAIGN_MAX_PLAYERS_LIMIT}
+          defaultValue={CAMPAIGN_MAX_PLAYERS_LIMIT}
           required
           className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
         />

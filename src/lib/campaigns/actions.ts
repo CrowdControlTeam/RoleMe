@@ -4,48 +4,48 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ensureSession } from "@/lib/supabase/session";
-import { CAMPANA_MAX_JUGADORES_LIMIT } from "@/lib/config";
+import { CAMPAIGN_MAX_PLAYERS_LIMIT } from "@/lib/config";
 import { generateInviteCode } from "@/lib/invite-code";
 
-export type CreateCampanaState = {
+export type CreateCampaignState = {
   status: "idle" | "error";
-  errorKey?: "invalidName" | "invalidMaxJugadores" | "invalidJuego" | "generic";
+  errorKey?: "invalidName" | "invalidMaxPlayers" | "invalidGame" | "generic";
 };
 
-export async function createCampana(
-  _prevState: CreateCampanaState,
+export async function createCampaign(
+  _prevState: CreateCampaignState,
   formData: FormData,
-): Promise<CreateCampanaState> {
+): Promise<CreateCampaignState> {
   const name = formData.get("name");
-  const maxJugadoresRaw = formData.get("maxJugadores");
-  const juego = formData.get("juego");
+  const maxPlayersRaw = formData.get("maxPlayers");
+  const game = formData.get("game");
 
   if (typeof name !== "string" || !name.trim()) {
     return { status: "error", errorKey: "invalidName" };
   }
 
-  if (typeof juego !== "string" || !juego.trim()) {
-    return { status: "error", errorKey: "invalidJuego" };
+  if (typeof game !== "string" || !game.trim()) {
+    return { status: "error", errorKey: "invalidGame" };
   }
 
-  const maxJugadores = Number(maxJugadoresRaw);
+  const maxPlayers = Number(maxPlayersRaw);
   if (
-    !Number.isInteger(maxJugadores) ||
-    maxJugadores < 1 ||
-    maxJugadores > CAMPANA_MAX_JUGADORES_LIMIT
+    !Number.isInteger(maxPlayers) ||
+    maxPlayers < 1 ||
+    maxPlayers > CAMPAIGN_MAX_PLAYERS_LIMIT
   ) {
-    return { status: "error", errorKey: "invalidMaxJugadores" };
+    return { status: "error", errorKey: "invalidMaxPlayers" };
   }
 
   const supabase = await createClient();
   const user = await ensureSession(supabase);
 
   const { data, error } = await supabase
-    .from("campanas")
+    .from("campaigns")
     .insert({
       name: name.trim(),
-      juego,
-      max_jugadores: maxJugadores,
+      game,
+      max_players: maxPlayers,
       creator_id: user.id,
       invite_code: generateInviteCode(),
     })
@@ -55,23 +55,23 @@ export async function createCampana(
   if (error || !data) {
     return {
       status: "error",
-      errorKey: error?.code === "23503" ? "invalidJuego" : "generic",
+      errorKey: error?.code === "23503" ? "invalidGame" : "generic",
     };
   }
 
-  revalidatePath("/campanas");
-  redirect(`/campanas/${data.id}`);
+  revalidatePath("/campaigns");
+  redirect(`/campaigns/${data.id}`);
 }
 
-export type JoinCampanaState = {
+export type JoinCampaignState = {
   status: "idle" | "error";
   errorKey?: "invalidCode" | "full" | "generic";
 };
 
-export async function joinCampana(
-  _prevState: JoinCampanaState,
+export async function joinCampaign(
+  _prevState: JoinCampaignState,
   formData: FormData,
-): Promise<JoinCampanaState> {
+): Promise<JoinCampaignState> {
   const code = formData.get("code");
 
   if (typeof code !== "string" || !code.trim()) {
@@ -81,32 +81,32 @@ export async function joinCampana(
   const supabase = await createClient();
   await ensureSession(supabase);
 
-  const { data, error } = await supabase.rpc("join_campana", {
+  const { data, error } = await supabase.rpc("join_campaign", {
     p_code: code.trim().toUpperCase(),
   });
 
   if (error || !data) {
-    if (error?.message.includes("CAMPANA_LLENA")) {
+    if (error?.message.includes("CAMPAIGN_FULL")) {
       return { status: "error", errorKey: "full" };
     }
     return { status: "error", errorKey: "invalidCode" };
   }
 
-  revalidatePath("/campanas");
-  redirect(`/campanas/${data.id}`);
+  revalidatePath("/campaigns");
+  redirect(`/campaigns/${data.id}`);
 }
 
-export async function regenerateInviteCode(campanaId: string) {
+export async function regenerateInviteCode(campaignId: string) {
   const supabase = await createClient();
 
   const { error } = await supabase
-    .from("campanas")
+    .from("campaigns")
     .update({ invite_code: generateInviteCode() })
-    .eq("id", campanaId);
+    .eq("id", campaignId);
 
   if (error) {
     throw error;
   }
 
-  revalidatePath(`/campanas/${campanaId}`);
+  revalidatePath(`/campaigns/${campaignId}`);
 }

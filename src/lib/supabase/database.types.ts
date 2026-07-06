@@ -34,96 +34,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      campana_miembros: {
+      campaign_members: {
         Row: {
-          campana_id: string
+          campaign_id: string
           joined_at: string
           user_id: string
         }
         Insert: {
-          campana_id: string
+          campaign_id: string
           joined_at?: string
           user_id: string
         }
         Update: {
-          campana_id?: string
+          campaign_id?: string
           joined_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "campana_miembros_campana_id_fkey"
-            columns: ["campana_id"]
+            foreignKeyName: "campaign_members_campaign_id_fkey"
+            columns: ["campaign_id"]
             isOneToOne: false
-            referencedRelation: "campanas"
+            referencedRelation: "campaigns"
             referencedColumns: ["id"]
           },
         ]
       }
-      campanas: {
+      campaigns: {
         Row: {
           created_at: string
           creator_id: string
+          game: string
           id: string
           invite_code: string
-          juego: string
-          max_jugadores: number
+          max_players: number
           name: string
         }
         Insert: {
           created_at?: string
           creator_id: string
+          game?: string
           id?: string
           invite_code: string
-          juego?: string
-          max_jugadores: number
+          max_players: number
           name: string
         }
         Update: {
           created_at?: string
           creator_id?: string
+          game?: string
           id?: string
           invite_code?: string
-          juego?: string
-          max_jugadores?: number
+          max_players?: number
           name?: string
         }
         Relationships: [
           {
-            foreignKeyName: "campanas_juego_fkey"
-            columns: ["juego"]
+            foreignKeyName: "campaigns_game_fkey"
+            columns: ["game"]
             isOneToOne: false
-            referencedRelation: "juegos"
+            referencedRelation: "games"
             referencedColumns: ["id"]
           },
         ]
       }
-      juego_campos: {
+      game_fields: {
         Row: {
-          default_visible_en_tarjeta: boolean
+          default_visible_on_card: boolean
+          game_id: string
           group: string
           id: string
-          juego_id: string
           key: string
           label: string
           sort_order: number
           type: string
         }
         Insert: {
-          default_visible_en_tarjeta?: boolean
+          default_visible_on_card?: boolean
+          game_id: string
           group: string
           id?: string
-          juego_id: string
           key: string
           label: string
           sort_order?: number
           type: string
         }
         Update: {
-          default_visible_en_tarjeta?: boolean
+          default_visible_on_card?: boolean
+          game_id?: string
           group?: string
           id?: string
-          juego_id?: string
           key?: string
           label?: string
           sort_order?: number
@@ -131,15 +131,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "juego_campos_juego_id_fkey"
-            columns: ["juego_id"]
+            foreignKeyName: "game_fields_game_id_fkey"
+            columns: ["game_id"]
             isOneToOne: false
-            referencedRelation: "juegos"
+            referencedRelation: "games"
             referencedColumns: ["id"]
           },
         ]
       }
-      juegos: {
+      games: {
         Row: {
           created_at: string
           id: string
@@ -162,28 +162,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_campana_creator: {
-        Args: { p_campana_id: string; p_user_id: string }
+      is_campaign_creator: {
+        Args: { p_campaign_id: string; p_user_id: string }
         Returns: boolean
       }
-      is_campana_member: {
-        Args: { p_campana_id: string; p_user_id: string }
+      is_campaign_member: {
+        Args: { p_campaign_id: string; p_user_id: string }
         Returns: boolean
       }
-      join_campana: {
+      join_campaign: {
         Args: { p_code: string }
         Returns: {
           created_at: string
           creator_id: string
+          game: string
           id: string
           invite_code: string
-          juego: string
-          max_jugadores: number
+          max_players: number
           name: string
         }
         SetofOptions: {
           from: "*"
-          to: "campanas"
+          to: "campaigns"
           isOneToOne: true
           isSetofReturn: false
         }
