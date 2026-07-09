@@ -123,7 +123,22 @@
     "cancelReadyButton": "Cancelar listo",
     "leaveButton": "Abandonar lobby",
     "finishSessionButton": "Cerrar sesión",
+    "turnOrderTitle": "Orden de turnos",
     "typeMaster": "master",
     "typeCharacter": "personaje"
+  },
+  "Dice": {
+    "title": "Dados",
+    "facesLabel": "Caras",
+    "quantityLabel": "Cantidad",
+    "modifierLabel": "Modificador",
+    "privateLabel": "Privada",
+    "rollButton": "Tirar",
+    "rolling": "Tirando...",
+    "generic": "Ha ocurrido un error. Inténtalo de nuevo.",
+    "noRolls": "Todavía no se ha tirado ningún dado en esta sesión.",
+    "rollSummary": "{notation}: [{results}] = {total}",
+    "privateBadge": "Privada",
+    "quickRollTitle": "Tirar dados"
   }
 }

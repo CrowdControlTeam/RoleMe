@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { UpdateSheetFieldsState } from "@/lib/sheets/actions";
+import { StatDicePopover } from "./stat-dice-popover";
 
 export type SheetFieldGroup = {
   group: string;
@@ -45,6 +46,7 @@ export function SheetFieldsForm({
                 {field.label}
                 {field.type === "textarea" ? (
                   <textarea
+                    id={`value_${field.id}`}
                     name={`value_${field.id}`}
                     defaultValue={field.value ?? ""}
                     rows={3}
@@ -52,6 +54,7 @@ export function SheetFieldsForm({
                   />
                 ) : (
                   <input
+                    id={`value_${field.id}`}
                     type={field.type === "number" ? "number" : "text"}
                     name={`value_${field.id}`}
                     defaultValue={field.value ?? ""}
@@ -59,6 +62,9 @@ export function SheetFieldsForm({
                   />
                 )}
               </label>
+              {group.group === "stats" && field.type === "number" && (
+                <StatDicePopover fieldId={field.id} />
+              )}
               <label className="flex items-center gap-1 pb-1.5 text-xs text-zinc-500">
                 <input
                   type="checkbox"

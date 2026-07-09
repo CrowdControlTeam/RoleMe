@@ -8,6 +8,9 @@ import {
   finishSession,
 } from "@/lib/sessions/actions";
 import { SelectSheetForm } from "@/components/sessions/select-sheet-form";
+import { SessionHeartbeat } from "@/components/sessions/session-heartbeat";
+import { TurnOrder } from "@/components/sessions/turn-order";
+import { SessionDiceRoller } from "@/components/dice/session-dice-roller";
 
 export default async function SessionLobbyPage({
   params,
@@ -16,20 +19,40 @@ export default async function SessionLobbyPage({
 }) {
   const { id: campaignId, adventureId, sessionId } = await params;
   const t = await getTranslations("Sessions");
+  const tDice = await getTranslations("Dice");
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: session } = await supabase
+  let { data: session } = await supabase
     .from("sessions")
-    .select("id, status, created_by, adventures(name, required_players)")
+    .select("id, status, created_by, turn_order, adventures(name, required_players)")
     .eq("id", sessionId)
     .maybeSingle();
 
   if (!session) {
     notFound();
+  }
+
+  if (session.status === "active") {
+    // Lazily close the session if every participant has gone quiet for a
+    // while — see close_if_abandoned_session for why this can't just be
+    // true Realtime Presence.
+    await supabase.rpc("close_if_abandoned_session", {
+      p_session_id: sessionId,
+      p_grace_seconds: 120,
+    });
+
+    const { data: refreshed } = await supabase
+      .from("sessions")
+      .select("id, status, created_by, turn_order, adventures(name, required_players)")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (refreshed) {
+      session = refreshed;
+    }
   }
 
   const { data: participantsData } = await supabase
@@ -66,6 +89,36 @@ export default async function SessionLobbyPage({
       .eq("campaign_id", campaignId)
       .eq("owner_id", user.id);
     myOwnSheets = data ?? [];
+  }
+
+  let isMaster = false;
+  let rolls: {
+    id: string;
+    user_id: string;
+    faces: number;
+    quantity: number;
+    modifier: number;
+    results: unknown;
+    total: number;
+    is_private: boolean;
+    created_at: string;
+  }[] = [];
+
+  if (session.status === "active" && me) {
+    const { data: masterCheck } = await supabase.rpc("is_session_master", {
+      p_session_id: sessionId,
+      p_user_id: user!.id,
+    });
+    isMaster = masterCheck ?? false;
+
+    const { data: rollsData } = await supabase
+      .from("dice_rolls")
+      .select(
+        "id, user_id, faces, quantity, modifier, results, total, is_private, created_at",
+      )
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false });
+    rolls = rollsData ?? [];
   }
 
   return (
@@ -206,6 +259,78 @@ export default async function SessionLobbyPage({
                 </div>
               )}
             </>
+          )}
+
+          {session.status === "active" && me && (
+            <SessionHeartbeat sessionId={sessionId} />
+          )}
+
+          {session.status === "active" && session.turn_order.length > 0 && (
+            <section className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+              <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+                {t("turnOrderTitle")}
+              </h2>
+              <TurnOrder
+                sessionId={sessionId}
+                campaignId={campaignId}
+                adventureId={adventureId}
+                isMaster={isMaster}
+                order={session.turn_order.map((userId) => ({
+                  userId,
+                  displayName: nameByUserId.get(userId) ?? userId,
+                }))}
+              />
+            </section>
+          )}
+
+          {session.status === "active" && me && (
+            <section className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+              <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+                {tDice("title")}
+              </h2>
+              <SessionDiceRoller
+                sessionId={sessionId}
+                campaignId={campaignId}
+                adventureId={adventureId}
+                isMaster={isMaster}
+              />
+              {rolls.length === 0 ? (
+                <p className="text-sm text-zinc-500">{tDice("noRolls")}</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {rolls.map((roll) => {
+                    const notation = `${roll.quantity}d${roll.faces}${
+                      roll.modifier > 0
+                        ? `+${roll.modifier}`
+                        : roll.modifier < 0
+                          ? roll.modifier
+                          : ""
+                    }`;
+                    return (
+                      <li
+                        key={roll.id}
+                        className="flex items-center justify-between text-sm text-zinc-700 dark:text-zinc-300"
+                      >
+                        <span>
+                          {nameByUserId.get(roll.user_id) ?? roll.user_id}
+                          {" — "}
+                          {tDice("rollSummary", {
+                            notation,
+                            results: JSON.stringify(roll.results).slice(1, -1),
+                            total: roll.total,
+                          })}
+                        </span>
+                        {roll.is_private && (
+                          <span className="text-xs text-amber-600 dark:text-amber-400">
+                            {tDice("privateBadge")}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
           )}
 
           {isCreator && (

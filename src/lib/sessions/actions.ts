@@ -188,3 +188,31 @@ export async function finishSession(
   revalidatePath(lobbyPath(campaignId, adventureId, sessionId));
   revalidatePath(`/campaigns/${campaignId}/adventures/${adventureId}`);
 }
+
+// Called every ~30s by a mounted session page (see SessionHeartbeat) so
+// close_if_abandoned_session can tell whether every participant has gone
+// quiet. No UI feedback needed — a missed beat just means the auto-close
+// check fires a little sooner.
+export async function heartbeat(sessionId: string) {
+  const supabase = await createClient();
+  await supabase.rpc("heartbeat", { p_session_id: sessionId });
+}
+
+export async function updateTurnOrder(
+  sessionId: string,
+  campaignId: string,
+  adventureId: string,
+  newOrder: string[],
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("sessions")
+    .update({ turn_order: newOrder })
+    .eq("id", sessionId);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath(lobbyPath(campaignId, adventureId, sessionId));
+}

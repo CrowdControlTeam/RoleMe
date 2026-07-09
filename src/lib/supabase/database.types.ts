@@ -133,6 +133,53 @@ export type Database = {
           },
         ]
       }
+      dice_rolls: {
+        Row: {
+          created_at: string
+          faces: number
+          id: string
+          is_private: boolean
+          modifier: number
+          quantity: number
+          results: Json
+          session_id: string
+          total: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          faces: number
+          id?: string
+          is_private?: boolean
+          modifier?: number
+          quantity: number
+          results: Json
+          session_id: string
+          total: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          faces?: number
+          id?: string
+          is_private?: boolean
+          modifier?: number
+          quantity?: number
+          results?: Json
+          session_id?: string
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dice_rolls_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_fields: {
         Row: {
           default_visible_on_card: boolean
@@ -195,6 +242,7 @@ export type Database = {
       session_participants: {
         Row: {
           joined_at: string
+          last_seen_at: string
           ready: boolean
           session_id: string
           sheet_id: string | null
@@ -202,6 +250,7 @@ export type Database = {
         }
         Insert: {
           joined_at?: string
+          last_seen_at?: string
           ready?: boolean
           session_id: string
           sheet_id?: string | null
@@ -209,6 +258,7 @@ export type Database = {
         }
         Update: {
           joined_at?: string
+          last_seen_at?: string
           ready?: boolean
           session_id?: string
           sheet_id?: string | null
@@ -241,6 +291,7 @@ export type Database = {
           id: string
           started_at: string | null
           status: string
+          turn_order: string[]
         }
         Insert: {
           adventure_id: string
@@ -251,6 +302,7 @@ export type Database = {
           id?: string
           started_at?: string | null
           status?: string
+          turn_order?: string[]
         }
         Update: {
           adventure_id?: string
@@ -261,6 +313,7 @@ export type Database = {
           id?: string
           started_at?: string | null
           status?: string
+          turn_order?: string[]
         }
         Relationships: [
           {
@@ -355,6 +408,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_if_abandoned_session: {
+        Args: { p_grace_seconds?: number; p_session_id: string }
+        Returns: undefined
+      }
       get_campaign_members: {
         Args: { p_campaign_id: string }
         Returns: {
@@ -362,6 +419,10 @@ export type Database = {
           joined_at: string
           user_id: string
         }[]
+      }
+      heartbeat: {
+        Args: { p_session_id: string }
+        Returns: undefined
       }
       is_campaign_creator: {
         Args: { p_campaign_id: string; p_user_id: string }
@@ -373,6 +434,10 @@ export type Database = {
       }
       is_campaign_member: {
         Args: { p_campaign_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_session_master: {
+        Args: { p_session_id: string; p_user_id: string }
         Returns: boolean
       }
       join_campaign: {
