@@ -6,7 +6,13 @@ import { createSheet, type CreateSheetState } from "@/lib/sheets/actions";
 
 const initialState: CreateSheetState = { status: "idle" };
 
-export function CreateSheetForm({ campaignId }: { campaignId: string }) {
+export function CreateSheetForm({
+  campaignId,
+  returnTo,
+}: {
+  campaignId: string;
+  returnTo?: string;
+}) {
   const t = useTranslations("Sheets");
   const [state, formAction, pending] = useActionState(
     createSheet.bind(null, campaignId),
@@ -15,6 +21,7 @@ export function CreateSheetForm({ campaignId }: { campaignId: string }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
       <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
         {t("nameLabel")}
         <input

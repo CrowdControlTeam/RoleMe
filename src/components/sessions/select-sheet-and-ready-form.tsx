@@ -1,12 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { selectSheet, type SelectSheetState } from "@/lib/sessions/actions";
+import {
+  selectSheetAndReady,
+  type SelectSheetState,
+} from "@/lib/sessions/actions";
 
 const initialState: SelectSheetState = { status: "idle" };
 
-export function SelectSheetForm({
+export function SelectSheetAndReadyForm({
   sessionId,
   campaignId,
   adventureId,
@@ -20,8 +23,9 @@ export function SelectSheetForm({
   currentSheetId: string | null;
 }) {
   const t = useTranslations("Sessions");
+  const [sheetId, setSheetId] = useState(currentSheetId ?? "");
   const [state, formAction, pending] = useActionState(
-    selectSheet.bind(null, sessionId, campaignId, adventureId),
+    selectSheetAndReady.bind(null, sessionId, campaignId, adventureId),
     initialState,
   );
 
@@ -30,7 +34,8 @@ export function SelectSheetForm({
       <select
         name="sheetId"
         required
-        defaultValue={currentSheetId ?? ""}
+        value={sheetId}
+        onChange={(e) => setSheetId(e.target.value)}
         className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
       >
         <option value="" disabled>
@@ -44,10 +49,10 @@ export function SelectSheetForm({
       </select>
       <button
         type="submit"
-        disabled={pending}
-        className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300"
+        disabled={pending || !sheetId}
+        className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
       >
-        {pending ? t("selectingSheet") : t("selectSheetButton")}
+        {pending ? t("readying") : t("readyButton")}
       </button>
       {state.status === "error" && (
         <p className="w-full text-sm text-red-600 dark:text-red-400">

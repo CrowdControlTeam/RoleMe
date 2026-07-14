@@ -13,6 +13,8 @@ import {
 } from "@/components/sheets/sheet-fields-form";
 import { ReadOnlySheetFields } from "@/components/sheets/read-only-sheet-fields";
 import { ImportSheetForm } from "@/components/sheets/import-sheet-form";
+import { BackLink } from "@/components/layout/back-link";
+import { sanitizeReturnTo } from "@/lib/safe-return-to";
 
 const STATS_INFO_GROUPS = ["stats", "character_info"] as const;
 const GROUP_TITLE_KEY: Record<string, string> = {
@@ -23,11 +25,15 @@ const GROUP_TITLE_KEY: Record<string, string> = {
 
 export default async function SheetDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; sheetId: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }) {
   const { id: campaignId, sheetId } = await params;
+  const returnTo = sanitizeReturnTo((await searchParams).returnTo);
   const t = await getTranslations("Sheets");
+  const tSessions = await getTranslations("Sessions");
   const supabase = await createClient();
 
   const {
@@ -99,6 +105,10 @@ export default async function SheetDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
+      <BackLink
+        href={returnTo || `/campaigns/${campaignId}/sheets`}
+        label={returnTo ? tSessions("backToLobby") : t("title")}
+      />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
           {sheet.name}

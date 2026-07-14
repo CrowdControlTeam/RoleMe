@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdventure } from "@/lib/adventures/actions";
 import { AdventureForm } from "@/components/adventures/adventure-form";
+import { BackLink } from "@/components/layout/back-link";
 
 export default async function AdventuresPage({
   params,
@@ -19,7 +20,7 @@ export default async function AdventuresPage({
 
   const { data: campaign } = await supabase
     .from("campaigns")
-    .select("creator_id, max_players")
+    .select("name, creator_id, max_players")
     .eq("id", campaignId)
     .maybeSingle();
 
@@ -34,6 +35,10 @@ export default async function AdventuresPage({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
+      <BackLink
+        href={`/campaigns/${campaignId}`}
+        label={campaign?.name ?? ""}
+      />
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         {t("title")}
       </h1>

@@ -7,10 +7,11 @@ import {
   setReady,
   finishSession,
 } from "@/lib/sessions/actions";
-import { SelectSheetForm } from "@/components/sessions/select-sheet-form";
+import { SelectSheetAndReadyForm } from "@/components/sessions/select-sheet-and-ready-form";
 import { SessionHeartbeat } from "@/components/sessions/session-heartbeat";
 import { TurnOrder } from "@/components/sessions/turn-order";
 import { SessionDiceRoller } from "@/components/dice/session-dice-roller";
+import { BackLink } from "@/components/layout/back-link";
 
 export default async function SessionLobbyPage({
   params,
@@ -121,8 +122,14 @@ export default async function SessionLobbyPage({
     rolls = rollsData ?? [];
   }
 
+  const lobbyPath = `/campaigns/${campaignId}/adventures/${adventureId}/sessions/${sessionId}`;
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
+      <BackLink
+        href={`/campaigns/${campaignId}/adventures/${adventureId}`}
+        label={session.adventures?.name ?? ""}
+      />
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         {session.adventures?.name}
       </h1>
@@ -192,7 +199,7 @@ export default async function SessionLobbyPage({
                 <div className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
                   {!me.ready ? (
                     <>
-                      <SelectSheetForm
+                      <SelectSheetAndReadyForm
                         sessionId={sessionId}
                         campaignId={campaignId}
                         adventureId={adventureId}
@@ -200,28 +207,11 @@ export default async function SessionLobbyPage({
                         currentSheetId={me.sheet_id}
                       />
                       <a
-                        href={`/campaigns/${campaignId}/sheets`}
+                        href={`/campaigns/${campaignId}/sheets?returnTo=${encodeURIComponent(lobbyPath)}`}
                         className="w-fit text-sm text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
                       >
                         {t("createNewSheetLink")}
                       </a>
-                      <form
-                        action={setReady.bind(
-                          null,
-                          sessionId,
-                          campaignId,
-                          adventureId,
-                          true,
-                        )}
-                      >
-                        <button
-                          type="submit"
-                          disabled={!me.sheet_id}
-                          className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
-                        >
-                          {t("readyButton")}
-                        </button>
-                      </form>
                       <form
                         action={leaveSession.bind(
                           null,

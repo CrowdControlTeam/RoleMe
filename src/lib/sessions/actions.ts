@@ -106,7 +106,10 @@ export type SelectSheetState = {
   errorKey?: "invalidSheet" | "generic";
 };
 
-export async function selectSheet(
+// Picking a sheet and readying up happen together, in one write: there's no
+// value in persisting a tentative sheet_id before the player has committed to
+// it, and it keeps the lobby free of a write on every dropdown change.
+export async function selectSheetAndReady(
   sessionId: string,
   campaignId: string,
   adventureId: string,
@@ -130,7 +133,7 @@ export async function selectSheet(
 
   const { error } = await supabase
     .from("session_participants")
-    .update({ sheet_id: sheetId })
+    .update({ sheet_id: sheetId, ready: true })
     .eq("session_id", sessionId)
     .eq("user_id", user.id);
 

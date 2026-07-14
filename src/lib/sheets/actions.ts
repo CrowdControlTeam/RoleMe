@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { sanitizeReturnTo } from "@/lib/safe-return-to";
 
 export type CreateSheetState = {
   status: "idle" | "error";
@@ -52,7 +53,10 @@ export async function createSheet(
   }
 
   revalidatePath(`/campaigns/${campaignId}/sheets`);
-  redirect(`/campaigns/${campaignId}/sheets/${data.id}`);
+
+  const returnTo = sanitizeReturnTo(formData.get("returnTo")?.toString());
+  const returnToQuery = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+  redirect(`/campaigns/${campaignId}/sheets/${data.id}${returnToQuery}`);
 }
 
 // A sheet is "in play": some lobby/session has it readied up and hasn't

@@ -2,19 +2,31 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { CreateSheetForm } from "@/components/sheets/create-sheet-form";
+import { BackLink } from "@/components/layout/back-link";
+import { sanitizeReturnTo } from "@/lib/safe-return-to";
 
 export default async function SheetsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }) {
   const { id: campaignId } = await params;
+  const returnTo = sanitizeReturnTo((await searchParams).returnTo);
   const t = await getTranslations("Sheets");
+  const tSessions = await getTranslations("Sessions");
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: campaign } = await supabase
+    .from("campaigns")
+    .select("name")
+    .eq("id", campaignId)
+    .maybeSingle();
 
   const { data } = user
     ? await supabase
@@ -28,6 +40,10 @@ export default async function SheetsPage({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-6">
+      <BackLink
+        href={returnTo || `/campaigns/${campaignId}`}
+        label={returnTo ? tSessions("backToLobby") : (campaign?.name ?? "")}
+      />
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         {t("title")}
       </h1>
@@ -63,7 +79,7 @@ export default async function SheetsPage({
         <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
           {t("createTitle")}
         </h2>
-        <CreateSheetForm campaignId={campaignId} />
+        <CreateSheetForm campaignId={campaignId} returnTo={returnTo} />
       </section>
     </div>
   );

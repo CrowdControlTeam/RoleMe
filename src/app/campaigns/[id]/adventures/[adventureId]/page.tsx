@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { updateAdventure, deleteAdventure } from "@/lib/adventures/actions";
 import { startSession } from "@/lib/sessions/actions";
 import { AdventureForm } from "@/components/adventures/adventure-form";
+import { BackLink } from "@/components/layout/back-link";
 
 export default async function AdventureDetailPage({
   params,
@@ -40,6 +41,10 @@ export default async function AdventureDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
+      <BackLink
+        href={`/campaigns/${campaignId}/adventures`}
+        label={t("title")}
+      />
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         {adventure.name}
       </h1>
