@@ -46,15 +46,22 @@ Deferred to later phases (not discarded): importable rules engine / auto-calcula
 7. [done] Aventura CRUD
 8. [done] Sesión (preparation → active → close) — manual close only; auto-close on everyone-disconnected (Realtime Presence) and master-editable turn order are not implemented, left for task 9 or later
 9. [done] Dice tool + session integration
-10. [ ] Set up real/hosted Supabase environment (supabase.com project) and fill in `.env.local` — deferred until the rest of phase 1 is validated against local Supabase (Docker)
+10. [done] Set up real/hosted Supabase environment (supabase.com project) — hosted project `RoleMe` (ref `pzxlxetmvxjtcveyxzqq`, region `eu-north-1`), migrations applied, GitHub integration deploys future migrations on push to `main`, deployed to Vercel (`role-me-orpin.vercel.app`)
 
 ## Known environment notes
 
 - Node is 20.17.0 locally; some deps want `^20.19.0 || ^22.13.0 || >=24` (EBADENGINE warning only, not currently fatal).
-- Next.js 16 renamed `middleware.ts` to `proxy.ts` (deprecated, not removed) — relevant once auth/session interception is needed.
-- No hosted Supabase project exists yet — creating one on supabase.com requires the user's own account, done manually; then fill in `.env.local` from `.env.local.example`.
+- Next.js 16 renamed `middleware.ts` to `proxy.ts` (deprecated, not removed) — relevant once auth/session interception is needed. Not yet created; production currently relies on each Server Component's own session read to refresh cookies, which is less reliable than a proxy-based refresh.
+- Local dev still runs against a manually-orchestrated local Docker Supabase stack (the Supabase CLI's `start`/`db reset`/`gen types` crash on this machine); the hosted project is separate and only used for the deployed app so far.
+- Anonymous sign-in abuse protection (Captcha, e.g. Cloudflare Turnstile) is deliberately deferred — see backlog-adjacent task, not yet scheduled — until the app is opened beyond the current small group.
 
 ## Working preferences
 
 - Always confirm before making changes that go beyond what was explicitly asked.
-- Never commit unless explicitly asked to.
+- Git workflow: every task happens on its own branch off `main`, never directly on `main`. Branch name pattern: `<type>/<short-description>` (kebab-case, description ≤50 chars):
+  - `feat/**` — new development or functionality
+  - `bugfix/**` — a bug caught during development
+  - `hotfix/**` — a bug caught in production
+  - `release/**` — the changes needed to cut a new release
+
+  Commit freely on the task branch as work progresses (the old "never commit unless asked" rule only ever meant "never commit *to main*"). Commit message format: `<type>: <description>`, description clear and not too long — `<type>` is one of `feat`, `fix` (bugfix), `hotfix`, `release` (note: matches the branch prefix except `bugfix/**` branches use commit type `fix`, not `bugfix`). When the task is done, open a Pull Request into `main` with `gh pr create` and stop there — the user reviews and merges from GitHub themselves. Never merge a PR, never push directly to `main`.
