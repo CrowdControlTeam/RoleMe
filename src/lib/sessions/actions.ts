@@ -44,6 +44,12 @@ export async function startSession(adventureId: string, campaignId: string) {
     throw error ?? new Error("Could not start session");
   }
 
+  // The creator opening the lobby is also its first participant — no reason
+  // to make them click "join" a second time right after creating it.
+  await supabase
+    .from("session_participants")
+    .insert({ session_id: data.id, user_id: user.id });
+
   revalidatePath(`/campaigns/${campaignId}/adventures/${adventureId}`);
   redirect(lobbyPath(campaignId, adventureId, data.id));
 }
