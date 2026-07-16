@@ -81,9 +81,12 @@ export function HeaderClient({
             </div>
           )}
         </div>
-        <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        <Link
+          href="/campaigns"
+          className="text-lg font-semibold text-zinc-900 dark:text-zinc-50"
+        >
           {appName}
-        </span>
+        </Link>
       </div>
 
       {profile && (
