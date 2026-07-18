@@ -2,7 +2,22 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+
+// A participant's last_seen_at bumps every ~30s (see SessionHeartbeat) purely
+// to let close_if_abandoned_session tell who's still around — it never
+// changes anything the lobby renders, so it's excluded when deciding whether
+// an update is worth a refresh.
+function isMoreThanHeartbeat(
+  payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
+) {
+  const oldRow = payload.old as Record<string, unknown>;
+  const newRow = payload.new as Record<string, unknown>;
+  return Object.keys(newRow).some(
+    (key) => key !== "last_seen_at" && oldRow[key] !== newRow[key],
+  );
+}
 
 // Server actions only revalidate the page for whoever performed the action —
 // everyone else's lobby stays stale until they manually reload. This
@@ -22,12 +37,36 @@ export function SessionRealtimeSync({ sessionId }: { sessionId: string }) {
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "session_participants",
           filter: `session_id=eq.${sessionId}`,
         },
         () => router.refresh(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "session_participants",
+          filter: `session_id=eq.${sessionId}`,
+        },
+        () => router.refresh(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "session_participants",
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload) => {
+          if (isMoreThanHeartbeat(payload)) {
+            router.refresh();
+          }
+        },
       )
       .on(
         "postgres_changes",
