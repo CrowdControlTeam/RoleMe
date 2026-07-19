@@ -31,67 +31,84 @@ export function SessionRealtimeSync({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
-    const channel = supabase
-      .channel(`session-sync-${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "session_participants",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        () => router.refresh(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "session_participants",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        () => router.refresh(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "session_participants",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => {
-          if (isMoreThanHeartbeat(payload)) {
-            router.refresh();
-          }
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "sessions",
-          filter: `id=eq.${sessionId}`,
-        },
-        () => router.refresh(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "dice_rolls",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        () => router.refresh(),
-      )
-      .subscribe();
+    // Subscribing before the client's auth session has finished loading from
+    // cookies races Realtime's own auth handshake: the channel comes up
+    // authenticated as nobody, so every RLS-gated postgres_changes policy
+    // (is_campaign_member, etc.) evaluates against a null auth.uid() and
+    // silently matches nothing — no error, it just never fires. Waiting for
+    // getSession() first guarantees the token is attached before we subscribe.
+    supabase.auth.getSession().then(() => {
+      if (cancelled) {
+        return;
+      }
+
+      channel = supabase
+        .channel(`session-sync-${sessionId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "session_participants",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          () => router.refresh(),
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "session_participants",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          () => router.refresh(),
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "session_participants",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          (payload) => {
+            if (isMoreThanHeartbeat(payload)) {
+              router.refresh();
+            }
+          },
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "sessions",
+            filter: `id=eq.${sessionId}`,
+          },
+          () => router.refresh(),
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "dice_rolls",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          () => router.refresh(),
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [sessionId, router]);
 
