@@ -9,6 +9,7 @@ import {
 } from "@/lib/sessions/actions";
 import { SelectSheetAndReadyForm } from "@/components/sessions/select-sheet-and-ready-form";
 import { SessionHeartbeat } from "@/components/sessions/session-heartbeat";
+import { SessionRealtimeSync } from "@/components/sessions/session-realtime-sync";
 import { TurnOrder } from "@/components/sessions/turn-order";
 import { SessionDiceRoller } from "@/components/dice/session-dice-roller";
 import { BackLink } from "@/components/layout/back-link";
@@ -138,6 +139,7 @@ export default async function SessionLobbyPage({
         <p className="text-sm text-zinc-500">{t("sessionFinished")}</p>
       ) : (
         <>
+          <SessionRealtimeSync sessionId={sessionId} />
           <p className="text-sm text-zinc-500">
             {t(session.status === "active" ? "statusActive" : "statusPreparing")}
           </p>
