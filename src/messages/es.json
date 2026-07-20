@@ -15,7 +15,17 @@
     "linkSuccess": "Revisa tu bandeja de entrada para confirmar el email.",
     "linkError": "No se pudo vincular el email. Inténtalo de nuevo.",
     "invalidEmail": "Introduce un email válido.",
-    "linkedEmailLabel": "Sesión vinculada a {email}"
+    "linkedEmailLabel": "Sesión vinculada a {email}",
+    "loginLink": "¿Ya tienes cuenta? Inicia sesión"
+  },
+  "Login": {
+    "title": "Iniciar sesión",
+    "emailLabel": "Email",
+    "passwordLabel": "Contraseña",
+    "submitButton": "Entrar",
+    "submitting": "Entrando...",
+    "invalidCredentials": "Email o contraseña incorrectos.",
+    "backLink": "Volver"
   },
   "Campaigns": {
     "title": "Campañas",
