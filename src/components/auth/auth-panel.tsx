@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { startAnonymousSession } from "@/lib/supabase/actions";
@@ -12,14 +13,22 @@ export async function AuthPanel() {
 
   if (!user) {
     return (
-      <form action={startAnonymousSession}>
-        <button
-          type="submit"
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+      <div className="flex flex-col items-center gap-3">
+        <form action={startAnonymousSession}>
+          <button
+            type="submit"
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+          >
+            {t("startButton")}
+          </button>
+        </form>
+        <Link
+          href="/login"
+          className="text-sm text-zinc-600 underline underline-offset-4 dark:text-zinc-400"
         >
-          {t("startButton")}
-        </button>
-      </form>
+          {t("loginLink")}
+        </Link>
+      </div>
     );
   }
 
